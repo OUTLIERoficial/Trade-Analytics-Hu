@@ -1,51 +1,63 @@
 import { useListAccounts, useGetAccountStats } from "@workspace/api-client-react";
-import { formatCurrency, formatPercent, cn } from "@/lib/utils";
+import { formatCurrency, formatPercent, cn, ACCOUNT_STATUS_LABELS } from "@/lib/utils";
 import { Link } from "wouter";
-import { ShieldCheck, ShieldAlert, AlertTriangle, CheckCircle } from "lucide-react";
+import { ShieldCheck, ShieldAlert, AlertTriangle, CheckCircle, XCircle, ShieldX } from "lucide-react";
 
-function AccountRiskCard({ accountId }: { accountId: number }) {
+function RiskCard({ accountId }: { accountId: number }) {
   const { data: accounts } = useListAccounts();
   const { data: stats } = useGetAccountStats(accountId, { query: { enabled: !!accountId } });
   const account = accounts?.find(a => a.id === accountId);
-  if (!account || !stats) return null;
+  if (!account || !stats) return <div className="h-56 bg-card rounded-xl animate-pulse border border-card-border" />;
 
   const ddPercent = account.initialBalance > 0 ? (stats.maxDrawdown / account.initialBalance) * 100 : 0;
   const maxDdLimit = account.maxDrawdown ?? 10;
   const ddRatio = maxDdLimit > 0 ? ddPercent / maxDdLimit : 0;
-  const ddColor = ddRatio >= 0.8 ? "text-loss" : ddRatio >= 0.5 ? "text-yellow-500" : "text-profit";
 
-  const alerts = [];
-  if (ddRatio >= 0.8) alerts.push("Near max drawdown limit");
-  if (stats.winRate < 40 && stats.totalTrades >= 5) alerts.push("Low win rate");
-  if (stats.disciplineScore < 60 && stats.totalTrades >= 3) alerts.push("Low discipline score");
+  const alerts: string[] = [];
+  if (ddRatio >= 0.8) alerts.push("Próximo do limite de drawdown máximo");
+  if (stats.winRate < 40 && stats.totalTrades >= 5) alerts.push("Taxa de acerto abaixo de 40%");
+  if (stats.disciplineScore < 60 && stats.totalTrades >= 3) alerts.push("Pontuação de disciplina baixa");
+  if (stats.profitFactor < 1 && stats.totalTrades >= 5) alerts.push("Profit Factor inferior a 1.0");
 
-  const rules = [
-    { label: "Max Drawdown", ok: ddRatio < 0.8, value: account.maxDrawdown ? `${maxDdLimit}% limit (${ddPercent.toFixed(1)}% used)` : "No limit set" },
-    { label: "Daily Loss Limit", ok: true, value: account.dailyLossLimit ? formatCurrency(account.dailyLossLimit) : "No limit set" },
-    { label: "Max Trades/Day", ok: true, value: account.maxTradesPerDay ? `${account.maxTradesPerDay} trades` : "No limit set" },
-    { label: "Win Rate", ok: stats.winRate >= 40, value: formatPercent(stats.winRate) },
-    { label: "Discipline Score", ok: stats.disciplineScore >= 60, value: `${stats.disciplineScore.toFixed(0)}%` },
+  const checks = [
+    { label: "Drawdown Máximo", ok: ddRatio < 0.8, value: account.maxDrawdown ? `${maxDdLimit}% limite · ${ddPercent.toFixed(1)}% usado` : "Sem limite definido" },
+    { label: "Perda Diária", ok: true, value: account.dailyLossLimit ? formatCurrency(account.dailyLossLimit) : "Sem limite definido" },
+    { label: "Trades Máx./Dia", ok: true, value: account.maxTradesPerDay ? `${account.maxTradesPerDay} operações` : "Sem limite definido" },
+    { label: "Taxa de Acerto", ok: stats.winRate >= 40, value: formatPercent(stats.winRate) },
+    { label: "Disciplina", ok: stats.disciplineScore >= 60, value: `${stats.disciplineScore.toFixed(0)}%` },
     { label: "Profit Factor", ok: stats.profitFactor >= 1, value: stats.profitFactor.toFixed(2) },
   ];
 
+  const hasAlerts = alerts.length > 0;
+  const ddBarColor = ddRatio >= 0.8 ? "bg-red-500" : ddRatio >= 0.5 ? "bg-amber-500" : "bg-green-500";
+
   return (
-    <div className="bg-card border border-card-border rounded-lg p-4 space-y-3" data-testid={`risk-card-${accountId}`}>
+    <div className={cn("bg-card border rounded-xl p-5 space-y-4 transition-all", hasAlerts ? "border-red-500/30" : "border-card-border")} data-testid={`risk-card-${accountId}`}>
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <Link href={`/accounts/${accountId}`}><h3 className="font-semibold hover:text-primary cursor-pointer">{account.name}</h3></Link>
-          <p className="text-xs text-muted-foreground">{account.status} · {formatCurrency(account.currentBalance, account.currency)}</p>
+          <Link href={`/contas/${accountId}`}>
+            <h3 className="font-bold text-base hover:text-primary cursor-pointer transition-colors">{account.name}</h3>
+          </Link>
+          <p className="text-xs text-muted-foreground">{ACCOUNT_STATUS_LABELS[account.status] ?? account.status} · {formatCurrency(account.currentBalance, account.currency)}</p>
         </div>
-        <div className="flex items-center gap-2">
-          {alerts.length > 0 ? <ShieldAlert className="h-5 w-5 text-loss" /> : <ShieldCheck className="h-5 w-5 text-profit" />}
-          {stats.totalTrades > 0 && <span className={cn("text-xs font-bold", stats.profitFactor >= 1.5 ? "text-profit" : stats.profitFactor >= 1 ? "text-yellow-500" : "text-loss")}>PF: {stats.profitFactor.toFixed(2)}</span>}
+        <div className="flex items-center gap-3">
+          <div className={cn("text-xs font-bold px-2.5 py-1 rounded-full", stats.profitFactor >= 1.5 ? "bg-profit text-profit" : stats.profitFactor >= 1 ? "bg-amber-500/15 text-amber-500" : "bg-loss text-loss")}>
+            PF: {stats.profitFactor.toFixed(2)}
+          </div>
+          {hasAlerts
+            ? <div className="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center"><ShieldAlert className="h-5 w-5 text-red-500" /></div>
+            : <div className="w-9 h-9 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center"><ShieldCheck className="h-5 w-5 text-green-500" /></div>
+          }
         </div>
       </div>
 
-      {alerts.length > 0 && (
-        <div className="space-y-1">
+      {/* Alerts */}
+      {hasAlerts && (
+        <div className="space-y-1.5">
           {alerts.map((a, i) => (
-            <div key={i} className="flex items-center gap-2 text-xs text-loss bg-loss/10 px-2 py-1.5 rounded-md">
-              <AlertTriangle className="h-3 w-3 flex-shrink-0" /> {a}
+            <div key={i} className="flex items-center gap-2 text-xs text-red-500 bg-red-500/8 border border-red-500/15 px-3 py-2 rounded-lg">
+              <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" /> {a}
             </div>
           ))}
         </div>
@@ -54,24 +66,29 @@ function AccountRiskCard({ accountId }: { accountId: number }) {
       {/* Drawdown bar */}
       {account.maxDrawdown && (
         <div>
-          <div className="flex justify-between text-xs mb-1">
-            <span className="text-muted-foreground">Drawdown usage</span>
-            <span className={cn("font-medium", ddColor)}>{ddPercent.toFixed(1)}% / {maxDdLimit}%</span>
+          <div className="flex justify-between text-xs mb-2">
+            <span className="text-muted-foreground font-medium">Uso do Drawdown</span>
+            <span className={cn("font-bold", ddRatio >= 0.8 ? "text-red-500" : ddRatio >= 0.5 ? "text-amber-500" : "text-profit")}>
+              {ddPercent.toFixed(1)}% / {maxDdLimit}%
+            </span>
           </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div className={cn("h-full rounded-full transition-all", ddRatio >= 0.8 ? "bg-red-500" : ddRatio >= 0.5 ? "bg-yellow-500" : "bg-green-500")} style={{ width: `${Math.min(100, ddRatio * 100)}%` }} />
+          <div className="progress-bar">
+            <div className={cn("progress-fill", ddBarColor)} style={{ width: `${Math.min(100, ddRatio * 100)}%` }} />
           </div>
         </div>
       )}
 
-      <div className="space-y-1.5 pt-1">
-        {rules.map(r => (
-          <div key={r.label} className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1.5">
-              {r.ok ? <CheckCircle className="h-3.5 w-3.5 text-green-500" /> : <AlertTriangle className="h-3.5 w-3.5 text-loss" />}
-              <span className="text-muted-foreground">{r.label}</span>
+      {/* Check list */}
+      <div className="grid grid-cols-1 gap-1.5 pt-1">
+        {checks.map(c => (
+          <div key={c.label} className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              {c.ok
+                ? <CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                : <XCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />}
+              <span className="text-muted-foreground">{c.label}</span>
             </div>
-            <span className={cn("font-medium", !r.ok ? "text-loss" : "text-foreground")}>{r.value}</span>
+            <span className={cn("font-semibold", !c.ok ? "text-red-500" : "text-foreground")}>{c.value}</span>
           </div>
         ))}
       </div>
@@ -81,38 +98,51 @@ function AccountRiskCard({ accountId }: { accountId: number }) {
 
 export default function Risk() {
   const { data: accounts, isLoading } = useListAccounts();
-  const activeAccounts = accounts?.filter(a => a.status === "active" || a.status === "passed") ?? [];
+
+  const summary = accounts ? {
+    total: accounts.length,
+    active: accounts.filter(a => a.status === "active").length,
+    blown: accounts.filter(a => a.status === "blown").length,
+    passed: accounts.filter(a => a.status === "passed").length,
+  } : null;
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
       <div>
-        <h1 className="text-xl font-bold">Risk Management</h1>
-        <p className="text-sm text-muted-foreground">Monitor risk limits and discipline across all accounts</p>
+        <h1 className="text-xl font-black">Gestão de Risco</h1>
+        <p className="text-sm text-muted-foreground">Monitorize limites de risco e disciplina em todas as contas</p>
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">{[...Array(2)].map((_, i) => <div key={i} className="h-48 bg-muted rounded-lg animate-pulse" />)}</div>
+        <div className="space-y-4">{[...Array(2)].map((_, i) => <div key={i} className="h-56 bg-card rounded-xl animate-pulse" />)}</div>
       ) : !accounts?.length ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <ShieldAlert className="h-12 w-12 text-muted-foreground mb-3" />
-          <p className="text-muted-foreground mb-3">No accounts yet.</p>
-          <Link href="/accounts"><button className="text-sm text-primary hover:underline">Create an account to track risk</button></Link>
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4"><ShieldX className="h-8 w-8 text-muted-foreground" /></div>
+          <p className="text-lg font-bold mb-1">Nenhuma conta ainda</p>
+          <p className="text-sm text-muted-foreground mb-4">Crie uma conta para monitorizar o risco</p>
+          <Link href="/contas"><button className="text-sm text-primary hover:underline font-semibold">Criar conta →</button></Link>
         </div>
       ) : (
         <>
           {/* Summary */}
-          <div className="bg-card border border-card-border rounded-lg p-4">
-            <h2 className="text-sm font-semibold mb-3">Risk Rules Overview</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-              <div className="bg-muted/40 rounded-md p-3"><p className="text-2xl font-bold text-foreground">{accounts.length}</p><p className="text-xs text-muted-foreground mt-1">Total Accounts</p></div>
-              <div className="bg-muted/40 rounded-md p-3"><p className="text-2xl font-bold text-green-500">{activeAccounts.length}</p><p className="text-xs text-muted-foreground mt-1">Active</p></div>
-              <div className="bg-muted/40 rounded-md p-3"><p className="text-2xl font-bold text-red-500">{accounts.filter(a => a.status === "blown").length}</p><p className="text-xs text-muted-foreground mt-1">Blown</p></div>
-              <div className="bg-muted/40 rounded-md p-3"><p className="text-2xl font-bold text-blue-500">{accounts.filter(a => a.status === "passed").length}</p><p className="text-xs text-muted-foreground mt-1">Passed</p></div>
+          {summary && (
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: "Total de Contas", value: summary.total, color: "text-foreground", bg: "bg-muted/40" },
+                { label: "Ativas", value: summary.active, color: "text-green-500", bg: "bg-green-500/8" },
+                { label: "Queimadas", value: summary.blown, color: "text-red-500", bg: "bg-red-500/8" },
+                { label: "Aprovadas", value: summary.passed, color: "text-blue-500", bg: "bg-blue-500/8" },
+              ].map(item => (
+                <div key={item.label} className={cn("rounded-xl p-4 text-center border border-border/50", item.bg)}>
+                  <p className={cn("text-3xl font-black", item.color)}>{item.value}</p>
+                  <p className="text-xs text-muted-foreground mt-1 font-medium">{item.label}</p>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {accounts.map(a => <AccountRiskCard key={a.id} accountId={a.id} />)}
+            {accounts.map(a => <RiskCard key={a.id} accountId={a.id} />)}
           </div>
         </>
       )}

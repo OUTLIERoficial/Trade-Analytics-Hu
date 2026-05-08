@@ -1,19 +1,45 @@
 import { useParams, Link, useLocation } from "wouter";
-import { useGetTrade, useUpdateTrade, useDeleteTrade, getListTradesQueryKey, getGetDashboardSummaryQueryKey } from "@workspace/api-client-react";
+import { useGetTrade, useDeleteTrade, getListTradesQueryKey, getGetDashboardSummaryQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { formatCurrency, formatDateTime, pnlColor, resultBadgeClass, cn } from "@/lib/utils";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { formatCurrency, formatDateTime, pnlColor, resultLabel, resultBadgeClass, directionLabel, SESSION_LABELS, cn } from "@/lib/utils";
+import { ArrowLeft, CheckCircle, XCircle, TrendingUp, TrendingDown, Target, Brain, FileText, Shield, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-function Row({ label, value, className }: { label: string; value?: string | number | boolean | null; className?: string }) {
-  if (value == null || value === "") return null;
+function BoolBadge({ value, trueLabel = "Sim", falseLabel = "Não" }: { value: boolean | null | undefined; trueLabel?: string; falseLabel?: string }) {
+  if (value == null) return <span className="text-muted-foreground text-xs">—</span>;
+  return value ? (
+    <span className="flex items-center gap-1 text-xs text-green-500 font-semibold"><CheckCircle className="h-3.5 w-3.5" />{trueLabel}</span>
+  ) : (
+    <span className="flex items-center gap-1 text-xs text-red-500 font-semibold"><XCircle className="h-3.5 w-3.5" />{falseLabel}</span>
+  );
+}
+
+function Row({ label, value, className }: { label: string; value: React.ReactNode; className?: string }) {
   return (
-    <div className="flex items-start justify-between py-2 border-b border-border/50 last:border-0">
-      <span className="text-xs text-muted-foreground w-36 flex-shrink-0">{label}</span>
-      <span className={cn("text-sm font-medium text-right", className)}>{String(value)}</span>
+    <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+      <span className="text-xs text-muted-foreground font-medium">{label}</span>
+      <span className={cn("text-sm font-semibold text-right", className)}>{value ?? "—"}</span>
     </div>
   );
+}
+
+function SectionCard({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
+  return (
+    <div className="bg-card border border-card-border rounded-xl p-5">
+      <h2 className="text-sm font-bold flex items-center gap-2 mb-3">
+        <div className="w-6 h-6 rounded-md brand-bg flex items-center justify-center">
+          <Icon className="h-3.5 w-3.5 text-white" />
+        </div>
+        {title}
+      </h2>
+      {children}
+    </div>
+  );
+}
+
+function BarChart3Icon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>;
 }
 
 export default function TradeDetail() {
@@ -26,120 +52,147 @@ export default function TradeDetail() {
   const { toast } = useToast();
 
   async function handleDelete() {
-    if (!confirm("Delete this trade permanently?")) return;
+    if (!confirm("Eliminar esta operação permanentemente?")) return;
     deleteTrade.mutate({ id }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListTradesQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
-        toast({ title: "Trade deleted" });
-        setLocation("/journal");
+        toast({ title: "Operação eliminada" });
+        setLocation("/diario");
       },
     });
   }
 
-  if (isLoading) return <div className="p-6"><div className="h-64 bg-muted rounded-lg animate-pulse" /></div>;
-  if (!trade) return <div className="p-6"><p className="text-muted-foreground">Trade not found.</p></div>;
-
-  const disciplineFlags = [
-    trade.followedPlan != null && `${trade.followedPlan ? "Followed" : "Broke"} plan`,
-    trade.validSetup != null && (trade.validSetup ? "Valid setup" : "Invalid setup"),
-    trade.riskRespected != null && (trade.riskRespected ? "Risk respected" : "Risk violated"),
-    trade.impulsiveTrade != null && (trade.impulsiveTrade ? "Impulsive trade" : "Planned entry"),
-  ].filter(Boolean);
+  if (isLoading) return (
+    <div className="p-6 space-y-4">
+      <div className="h-8 w-48 bg-muted rounded-lg animate-pulse" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {[...Array(4)].map((_, i) => <div key={i} className="h-40 bg-card rounded-xl animate-pulse" />)}
+      </div>
+    </div>
+  );
+  if (!trade) return (
+    <div className="p-6 flex flex-col items-center justify-center min-h-64">
+      <p className="text-muted-foreground mb-3">Operação não encontrada.</p>
+      <Link href="/diario"><button className="text-sm text-primary hover:underline font-semibold">← Voltar ao Diário</button></Link>
+    </div>
+  );
 
   return (
-    <div className="p-4 lg:p-6 max-w-2xl space-y-4">
+    <div className="p-4 lg:p-6 space-y-4 max-w-4xl">
+      {/* Header */}
       <div className="flex items-center gap-3">
-        <Link href="/journal"><button className="p-1.5 rounded-md hover:bg-accent transition-colors" data-testid="button-back"><ArrowLeft className="h-4 w-4" /></button></Link>
+        <Link href="/diario">
+          <button className="p-1.5 rounded-md hover:bg-accent transition-colors" data-testid="button-back">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+        </Link>
         <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold">{trade.asset}</h1>
-            <span className={cn("text-xs px-2 py-0.5 rounded font-medium", trade.direction === "buy" ? "bg-profit text-green-600 dark:text-green-400" : "bg-loss text-red-600 dark:text-red-400")}>{trade.direction?.toUpperCase()}</span>
-            <span className={cn("text-xs px-2 py-0.5 rounded font-medium", resultBadgeClass(trade.result))}>{trade.result}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl font-black">{trade.asset}</h1>
+            <span className={cn("text-xs px-2.5 py-1 rounded-full font-bold border", trade.direction === "buy" ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-red-500/10 text-red-500 border-red-500/20")}>
+              {trade.direction === "buy"
+                ? <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" /> COMPRA</span>
+                : <span className="flex items-center gap-1"><TrendingDown className="h-3 w-3" /> VENDA</span>}
+            </span>
+            <span className={cn("text-xs px-2.5 py-1 rounded-full font-bold", resultBadgeClass(trade.result))}>
+              {resultLabel(trade.result)}
+            </span>
           </div>
           <p className="text-sm text-muted-foreground">{formatDateTime(trade.tradeDate)}</p>
         </div>
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={handleDelete} data-testid="button-delete-trade">
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* P&L highlight */}
-      <div className="bg-card border border-card-border rounded-lg p-4 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">P&L</p>
-          <p className={cn("text-3xl font-bold mt-1", pnlColor(trade.pnl))}>{trade.pnl != null ? formatCurrency(trade.pnl) : "—"}</p>
-        </div>
-        <div className="text-right">
-          {trade.riskReward != null && <div><p className="text-xs text-muted-foreground">R:R</p><p className="text-lg font-bold">{trade.riskReward.toFixed(2)}R</p></div>}
-          {trade.riskPercent != null && <p className="text-xs text-muted-foreground mt-1">{trade.riskPercent}% risk</p>}
+        <div className="flex items-center gap-3">
+          {trade.pnl != null && (
+            <span className={cn("text-2xl font-black font-mono", pnlColor(trade.pnl))}>
+              {trade.pnl >= 0 ? "+" : ""}{formatCurrency(trade.pnl)}
+            </span>
+          )}
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={handleDelete} data-testid="button-delete-trade">
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      {/* Trade details */}
-      <div className="bg-card border border-card-border rounded-lg p-4">
-        <h2 className="text-sm font-semibold mb-2">Trade Details</h2>
-        <Row label="Timeframe" value={trade.timeframe} />
-        <Row label="HTF Bias" value={trade.higherTimeframeBias} />
-        <Row label="Entry Trigger" value={trade.entryTrigger} />
-        <Row label="Setup" value={trade.setup} />
-        <Row label="Session" value={trade.session} />
-        <Row label="Strategy" value={trade.strategy} />
-        <Row label="Entry Price" value={trade.entryPrice?.toFixed(5)} />
-        <Row label="Stop Loss" value={trade.stopLoss?.toFixed(5)} />
-        <Row label="Take Profit" value={trade.takeProfit?.toFixed(5)} />
-        <Row label="Risk Amount" value={trade.riskAmount != null ? formatCurrency(trade.riskAmount) : undefined} />
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* SMC Context */}
+        <SectionCard title="Contexto SMC/ICT" icon={BarChart3Icon}>
+          <Row label="Timeframe" value={trade.timeframe} />
+          <Row label="Bias HTF" value={trade.higherTimeframeBias} />
+          <Row label="Trigger de Entrada" value={<span className="font-bold text-primary">{trade.entryTrigger ?? "—"}</span>} />
+          <Row label="Setup" value={trade.setup} />
+          <Row label="Sessão" value={trade.session ? (SESSION_LABELS[trade.session] ?? trade.session) : null} />
+          <Row label="Estratégia" value={trade.strategy} />
+        </SectionCard>
 
-      {/* Discipline */}
-      {disciplineFlags.length > 0 && (
-        <div className="bg-card border border-card-border rounded-lg p-4">
-          <h2 className="text-sm font-semibold mb-2">Discipline</h2>
-          <div className="flex flex-wrap gap-2">
-            {disciplineFlags.map((flag, i) => (
-              <span key={i} className={cn("text-xs px-2 py-1 rounded-full", typeof flag === "string" && (flag.startsWith("Broke") || flag.startsWith("Invalid") || flag.startsWith("Risk violated") || flag.startsWith("Impulsive")) ? "bg-loss text-red-600 dark:text-red-400" : "bg-profit text-green-600 dark:text-green-400")}>
-                {flag}
-              </span>
-            ))}
-          </div>
+        {/* Price & Risk */}
+        <SectionCard title="Preços e Risco" icon={Target}>
+          <Row label="Preço de Entrada" value={trade.entryPrice != null ? trade.entryPrice.toFixed(5) : null} />
+          <Row label="Stop Loss" value={trade.stopLoss != null ? trade.stopLoss.toFixed(5) : null} />
+          <Row label="Take Profit" value={trade.takeProfit != null ? trade.takeProfit.toFixed(5) : null} />
+          <Row label="Risk/Reward" value={trade.riskReward != null ? <span className="font-black">{trade.riskReward.toFixed(2)}R</span> : null} />
+          <Row label="Risco %" value={trade.riskPercent != null ? `${trade.riskPercent.toFixed(2)}%` : null} />
+          <Row label="Valor em Risco" value={trade.riskAmount != null ? formatCurrency(trade.riskAmount) : null} />
+        </SectionCard>
+
+        {/* Discipline */}
+        <SectionCard title="Disciplina" icon={Shield}>
+          <Row label="Seguiu o Plano" value={<BoolBadge value={trade.followedPlan} />} />
+          <Row label="Setup Válido" value={<BoolBadge value={trade.validSetup} />} />
+          <Row label="Risco Respeitado" value={<BoolBadge value={trade.riskRespected} />} />
+          <Row label="Trade Impulsivo" value={<BoolBadge value={trade.impulsiveTrade} trueLabel="Sim ⚠️" falseLabel="Não" />} />
           {trade.disciplineScore != null && (
-            <div className="mt-3">
-              <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>Discipline Score</span>
-                <span>{trade.disciplineScore}%</span>
+            <div className="pt-3">
+              <div className="flex justify-between text-xs mb-2">
+                <span className="text-muted-foreground font-medium">Pontuação de Disciplina</span>
+                <span className={cn("font-black text-sm", trade.disciplineScore >= 70 ? "text-profit" : trade.disciplineScore >= 50 ? "text-amber-500" : "text-loss")}>
+                  {trade.disciplineScore}/100
+                </span>
               </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className={cn("h-full rounded-full transition-all", trade.disciplineScore >= 70 ? "bg-green-500" : trade.disciplineScore >= 40 ? "bg-yellow-500" : "bg-red-500")} style={{ width: `${trade.disciplineScore}%` }} />
+              <div className="progress-bar">
+                <div className={cn("progress-fill", trade.disciplineScore >= 70 ? "bg-green-500" : trade.disciplineScore >= 50 ? "bg-amber-500" : "bg-red-500")}
+                  style={{ width: `${trade.disciplineScore}%` }} />
               </div>
             </div>
           )}
-        </div>
-      )}
+        </SectionCard>
 
-      {/* Psychology */}
-      {(trade.emotionBefore || trade.emotionAfter) && (
-        <div className="bg-card border border-card-border rounded-lg p-4">
-          <h2 className="text-sm font-semibold mb-2">Psychology</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {trade.emotionBefore && <div className="bg-muted/40 rounded-md p-3"><p className="text-xs text-muted-foreground">Before</p><p className="text-sm font-medium mt-1 capitalize">{trade.emotionBefore}</p></div>}
-            {trade.emotionAfter && <div className="bg-muted/40 rounded-md p-3"><p className="text-xs text-muted-foreground">After</p><p className="text-sm font-medium mt-1 capitalize">{trade.emotionAfter}</p></div>}
+        {/* Psychology */}
+        <SectionCard title="Psicologia" icon={Brain}>
+          <div className="grid grid-cols-2 gap-3 mb-2">
+            {trade.emotionBefore && (
+              <div className="bg-muted/40 rounded-lg p-3 border border-border/50">
+                <p className="text-xs text-muted-foreground">Antes do trade</p>
+                <p className="text-sm font-bold mt-1 capitalize">{trade.emotionBefore.replace(/_/g, " ")}</p>
+              </div>
+            )}
+            {trade.emotionAfter && (
+              <div className="bg-muted/40 rounded-lg p-3 border border-border/50">
+                <p className="text-xs text-muted-foreground">Depois do trade</p>
+                <p className="text-sm font-bold mt-1 capitalize">{trade.emotionAfter.replace(/_/g, " ")}</p>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+          {trade.tags && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {trade.tags.split(",").map(tag => (
+                <span key={tag} className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-medium">{tag.trim()}</span>
+              ))}
+            </div>
+          )}
+        </SectionCard>
+      </div>
 
       {/* Notes */}
       {trade.notes && (
-        <div className="bg-card border border-card-border rounded-lg p-4">
-          <h2 className="text-sm font-semibold mb-2">Notes</h2>
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{trade.notes}</p>
-        </div>
+        <SectionCard title="Notas e Observações" icon={FileText}>
+          <p className="text-sm text-muted-foreground leading-relaxed italic whitespace-pre-wrap">{trade.notes}</p>
+        </SectionCard>
       )}
 
-      {trade.tags && (
-        <div className="flex flex-wrap gap-1.5">
-          {trade.tags.split(",").map(tag => (
-            <span key={tag} className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{tag.trim()}</span>
-          ))}
+      {trade.screenshotUrl && (
+        <div className="bg-card border border-card-border rounded-xl p-5">
+          <h2 className="text-sm font-bold mb-3">Screenshot do Gráfico</h2>
+          <img src={trade.screenshotUrl} alt="Trade chart" className="rounded-xl max-h-80 w-full object-contain" />
         </div>
       )}
     </div>
