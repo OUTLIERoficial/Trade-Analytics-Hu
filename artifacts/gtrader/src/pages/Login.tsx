@@ -1,5 +1,5 @@
 import { useAuth } from "@workspace/replit-auth-web";
-import { TrendingUp, BarChart3, Shield, Brain, ChevronRight } from "lucide-react";
+import { TrendingUp, BarChart3, Shield, Brain, UserPlus, LogIn } from "lucide-react";
 import { OutlierLogoMark } from "@/components/OutlierLogo";
 
 const features = [
@@ -24,7 +24,7 @@ export default function Login() {
             <OutlierLogoMark size="lg" />
             <div>
               <div className="text-3xl font-black text-foreground tracking-[0.12em] uppercase">OUTLIER</div>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed max-w-xs">Plataforma de Gestão SMC/ICT</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Plataforma de Gestão SMC/ICT</p>
             </div>
           </div>
 
@@ -57,11 +57,11 @@ export default function Login() {
         <div className="flex flex-col items-center">
           <div className="w-full max-w-sm bg-card border border-card-border rounded-2xl p-8 shadow-2xl space-y-6">
             <div className="text-center space-y-3">
-              <div className="flex justify-center mb-4">
+              <div className="flex justify-center mb-2">
                 <OutlierLogoMark size="lg" />
               </div>
               <h2 className="text-2xl font-black tracking-[0.1em] uppercase text-foreground">OUTLIER</h2>
-              <p className="text-sm text-muted-foreground">Aceda à sua conta de trading profissional</p>
+              <p className="text-sm text-muted-foreground">Aceda ou crie a sua conta de trading profissional</p>
             </div>
 
             <div className="grid grid-cols-3 gap-2 p-3 bg-muted/50 rounded-xl border border-border/40">
@@ -79,6 +79,7 @@ export default function Login() {
               </div>
             </div>
 
+            {/* Login + Register buttons */}
             <div className="space-y-3">
               <button
                 onClick={login}
@@ -86,10 +87,20 @@ export default function Login() {
                 style={{ boxShadow: "0 4px 20px hsl(249 100% 60% / 0.4)" }}
                 data-testid="button-login"
               >
-                Entrar na Plataforma
-                <ChevronRight className="h-4 w-4" />
+                <LogIn className="h-4 w-4" />
+                Entrar na Conta
               </button>
-              <p className="text-center text-xs text-muted-foreground">
+
+              <button
+                onClick={login}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-transparent border-2 border-primary/50 text-primary rounded-xl font-bold text-sm hover:bg-primary/10 hover:border-primary transition-all active:scale-[0.98]"
+                data-testid="button-register"
+              >
+                <UserPlus className="h-4 w-4" />
+                Criar Conta Gratuita
+              </button>
+
+              <p className="text-center text-xs text-muted-foreground pt-1">
                 Novo utilizador? A conta é criada automaticamente no primeiro acesso.
               </p>
             </div>
