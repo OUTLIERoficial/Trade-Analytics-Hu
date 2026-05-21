@@ -55,24 +55,11 @@ router.post("/auth/register", async (req: Request, res: Response) => {
   const firstName = nameParts[0];
   const lastName = nameParts.slice(1).join(" ") || null;
 
-  const [user] = await db
+  await db
     .insert(usersTable)
-    .values({ email: email.toLowerCase(), passwordHash, firstName, lastName })
-    .returning();
+    .values({ email: email.toLowerCase(), passwordHash, firstName, lastName });
 
-  const sessionData: SessionData = {
-    user: {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      profileImageUrl: user.profileImageUrl,
-    },
-  };
-
-  const sid = await createSession(sessionData);
-  setSessionCookie(res, sid);
-  res.json({ user: sessionData.user });
+  res.json({ success: true });
 });
 
 router.post("/auth/login", async (req: Request, res: Response) => {

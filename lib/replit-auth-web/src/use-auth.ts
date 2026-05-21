@@ -47,9 +47,8 @@ export function useAuth(): AuthState {
       credentials: "include",
       body: JSON.stringify({ email, password, name }),
     });
-    const data = await res.json() as { user?: AuthUser; error?: string };
+    const data = await res.json() as { success?: boolean; error?: string };
     if (!res.ok || data.error) return data.error ?? "Erro ao criar conta.";
-    setUser(data.user ?? null);
     return null;
   }, []);
 
