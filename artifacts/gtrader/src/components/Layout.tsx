@@ -12,6 +12,7 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { OutlierLogoMark } from "@/components/OutlierLogo";
 
 const NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, color: "text-violet-400" },
@@ -22,27 +23,14 @@ const NAV = [
   { href: "/risco", label: "Risco", icon: ShieldAlert, color: "text-amber-400" },
 ];
 
-function OutlierLogo({ collapsed = false }: { collapsed?: boolean }) {
+function SidebarLogo({ collapsed = false }: { collapsed?: boolean }) {
   return (
     <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-      <div
-        className="logo-icon flex-shrink-0"
-        style={{ width: 36, height: 36 }}
-      >
-        <img
-          src="/outlier-logo.png"
-          alt="OUTLIER"
-          style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 10 }}
-        />
-      </div>
+      <OutlierLogoMark size="sm" />
       {!collapsed && (
         <div>
-          <div className="text-base font-black text-white tracking-[0.15em] uppercase leading-none">
-            OUTLIER
-          </div>
-          <p className="text-[9px] text-sidebar-foreground/45 leading-none mt-0.5 tracking-wide">
-            SMC · ICT · Profissional
-          </p>
+          <div className="text-base font-black text-white tracking-[0.15em] uppercase leading-none">OUTLIER</div>
+          <p className="text-[9px] text-sidebar-foreground/45 leading-none mt-0.5 tracking-wide">SMC · ICT · Profissional</p>
         </div>
       )}
     </div>
@@ -89,27 +77,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
       <aside className={cn(
         "fixed inset-y-0 left-0 z-30 flex flex-col w-60 transition-transform duration-200 lg:relative lg:translate-x-0",
         "border-r border-sidebar-border",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )} style={{ background: "hsl(var(--sidebar))" }}>
-
-        {/* Logo */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-sidebar-border">
-          <OutlierLogo />
+          <SidebarLogo />
           <button className="lg:hidden p-1 text-sidebar-foreground/50 hover:text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
           <p className="text-[10px] text-sidebar-foreground/35 font-semibold uppercase tracking-widest px-3 pb-2">Menu</p>
           {NAV.map(({ href, label, icon: Icon, color }) => {
@@ -118,9 +101,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Link key={href} href={href} onClick={() => setSidebarOpen(false)}>
                 <div className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer group",
-                  active
-                    ? "sidebar-active-glow font-semibold"
-                    : "text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  active ? "sidebar-active-glow font-semibold" : "text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 )} data-testid={`nav-${label.toLowerCase()}`}>
                   <Icon className={cn("h-4 w-4 flex-shrink-0 transition-colors", active ? color : "text-sidebar-foreground/35 group-hover:text-sidebar-foreground/65")} />
                   {label}
@@ -131,17 +112,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* User */}
         <div className="px-3 py-3 border-t border-sidebar-border">
           <UserMenu />
         </div>
       </aside>
 
-      {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {/* Mobile header */}
         <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-background/80 backdrop-blur-md lg:hidden">
-          <OutlierLogo />
+          <SidebarLogo />
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
               <Bell className="h-4 w-4" />

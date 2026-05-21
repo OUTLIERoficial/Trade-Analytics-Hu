@@ -15,6 +15,7 @@ import Analytics from "@/pages/Analytics";
 import Psychology from "@/pages/Psychology";
 import Risk from "@/pages/Risk";
 import NotFound from "@/pages/not-found";
+import { OutlierLogoMark } from "@/components/OutlierLogo";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
@@ -27,13 +28,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="logo-icon flex-shrink-0" style={{ width: 64, height: 64 }}>
-            <img
-              src="/outlier-logo.png"
-              alt="OUTLIER"
-              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 14 }}
-            />
-          </div>
+          <OutlierLogoMark size="lg" />
           <div className="flex gap-1.5">
             <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
             <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -44,10 +39,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Login />;
-  }
-
+  if (!isAuthenticated) return <Login />;
   return <>{children}</>;
 }
 

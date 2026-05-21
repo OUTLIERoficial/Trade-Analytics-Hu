@@ -1,5 +1,6 @@
 import { useAuth } from "@workspace/replit-auth-web";
 import { TrendingUp, BarChart3, Shield, Brain, ChevronRight } from "lucide-react";
+import { OutlierLogoMark } from "@/components/OutlierLogo";
 
 const features = [
   { icon: TrendingUp, title: "Diário de Operações", desc: "Registe cada trade com timeframe, trigger, sessão e imagens de gráfico" },
@@ -8,43 +9,22 @@ const features = [
   { icon: Shield, title: "Gestão de Risco", desc: "Monitorize drawdown e limites de risco por conta" },
 ];
 
-function OutlierLogoIcon({ size = 56 }: { size?: number }) {
-  return (
-    <div
-      className="logo-icon flex-shrink-0"
-      style={{ width: size, height: size }}
-    >
-      <img
-        src="/outlier-logo.png"
-        alt="OUTLIER"
-        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 12 }}
-      />
-    </div>
-  );
-}
-
 export default function Login() {
   const { login } = useAuth();
 
   return (
     <div className="login-bg min-h-screen flex flex-col items-center justify-center p-6">
-      {/* Decorative blobs */}
       <div className="fixed top-0 right-0 w-[600px] h-[600px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, hsl(249 100% 60% / 0.07) 0%, transparent 70%)" }} />
       <div className="fixed bottom-0 left-0 w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, hsl(270 80% 55% / 0.06) 0%, transparent 70%)" }} />
 
       <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center relative z-10">
         {/* Left: Branding */}
         <div className="space-y-8">
-          {/* Logo */}
           <div className="flex items-center gap-4">
-            <OutlierLogoIcon size={60} />
+            <OutlierLogoMark size="lg" />
             <div>
-              <div className="text-3xl font-black text-foreground tracking-[0.12em] uppercase">
-                OUTLIER
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed max-w-xs">
-                Plataforma de Gestão SMC/ICT
-              </p>
+              <div className="text-3xl font-black text-foreground tracking-[0.12em] uppercase">OUTLIER</div>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed max-w-xs">Plataforma de Gestão SMC/ICT</p>
             </div>
           </div>
 
@@ -76,16 +56,14 @@ export default function Login() {
         {/* Right: Login card */}
         <div className="flex flex-col items-center">
           <div className="w-full max-w-sm bg-card border border-card-border rounded-2xl p-8 shadow-2xl space-y-6">
-            {/* Icon */}
             <div className="text-center space-y-3">
               <div className="flex justify-center mb-4">
-                <OutlierLogoIcon size={72} />
+                <OutlierLogoMark size="lg" />
               </div>
               <h2 className="text-2xl font-black tracking-[0.1em] uppercase text-foreground">OUTLIER</h2>
               <p className="text-sm text-muted-foreground">Aceda à sua conta de trading profissional</p>
             </div>
 
-            {/* Stats preview */}
             <div className="grid grid-cols-3 gap-2 p-3 bg-muted/50 rounded-xl border border-border/40">
               <div className="text-center">
                 <p className="text-lg font-bold text-profit">+12.4%</p>
@@ -117,14 +95,12 @@ export default function Login() {
             </div>
 
             <div className="border-t border-border pt-4 text-center">
-              <p className="text-xs text-muted-foreground">
-                Acesso seguro · Dados privados · Cada utilizador tem os seus dados
-              </p>
+              <p className="text-xs text-muted-foreground">Acesso seguro · Dados privados · Cada utilizador tem os seus dados</p>
             </div>
           </div>
 
           <div className="mt-5 flex items-center gap-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-500"></div> SSL Seguro</div>
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-500" /> SSL Seguro</div>
             <div className="flex items-center gap-1.5"><Shield className="h-3 w-3" /> Dados Privados</div>
             <div className="flex items-center gap-1.5"><TrendingUp className="h-3 w-3" /> Tempo Real</div>
           </div>
