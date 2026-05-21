@@ -63,7 +63,7 @@ function UserMenu() {
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout} className="text-destructive" data-testid="button-logout">
+        <DropdownMenuItem onClick={() => logout()} className="text-destructive" data-testid="button-logout">
           <LogOut className="h-4 w-4 mr-2" /> Sair
         </DropdownMenuItem>
       </DropdownMenuContent>

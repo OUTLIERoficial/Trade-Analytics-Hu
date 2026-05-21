@@ -1,16 +1,45 @@
+import { useState } from "react";
 import { useAuth } from "@workspace/replit-auth-web";
-import { TrendingUp, BarChart3, Shield, Brain, UserPlus, LogIn } from "lucide-react";
+import { TrendingUp, BarChart3, Shield, Brain, LogIn, UserPlus, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { OutlierLogoMark } from "@/components/OutlierLogo";
 
 const features = [
   { icon: TrendingUp, title: "Diário de Operações", desc: "Registe cada trade com timeframe, trigger, sessão e imagens de gráfico" },
-  { icon: BarChart3, title: "Analytics Avançado", desc: "Heatmaps, rankings de triggers e curvas de equity em tempo real" },
+  { icon: BarChart3, title: "Analytics Avançado", desc: "Heatmaps, rankings de triggers e curvas de equity" },
   { icon: Brain, title: "Psicologia", desc: "Acompanhe o seu estado emocional e pontuação de disciplina" },
   { icon: Shield, title: "Gestão de Risco", desc: "Monitorize drawdown e limites de risco por conta" },
 ];
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, register } = useAuth();
+  const [mode, setMode] = useState<"login" | "register">("login");
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+
+    if (mode === "register") {
+      if (!name.trim()) { setError("Introduza o seu nome."); return; }
+      if (password !== confirmPassword) { setError("As passwords não coincidem."); return; }
+      if (password.length < 6) { setError("A password deve ter pelo menos 6 caracteres."); return; }
+    }
+
+    setLoading(true);
+    const err = mode === "login"
+      ? await login(email, password)
+      : await register(email, password, name);
+    setLoading(false);
+    if (err) setError(err);
+  }
 
   return (
     <div className="login-bg min-h-screen flex flex-col items-center justify-center p-6">
@@ -19,7 +48,7 @@ export default function Login() {
 
       <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center relative z-10">
         {/* Left: Branding */}
-        <div className="space-y-8">
+        <div className="hidden lg:block space-y-8">
           <div className="flex items-center gap-4">
             <OutlierLogoMark size="lg" />
             <div>
@@ -27,17 +56,15 @@ export default function Login() {
               <p className="text-xs text-muted-foreground mt-0.5">Plataforma de Gestão SMC/ICT</p>
             </div>
           </div>
-
           <div>
             <h1 className="text-4xl font-black text-foreground leading-tight mb-3">
               A consistência nasce<br />da repetição de<br />
               <span className="brand-gradient">contextos outlier.</span>
             </h1>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              A plataforma profissional para traders SMC e ICT. Registe, analise e melhore o seu desempenho com dados reais.
+              A plataforma profissional para traders SMC e ICT.
             </p>
           </div>
-
           <div className="grid grid-cols-1 gap-2.5">
             {features.map(({ icon: Icon, title, desc }) => (
               <div key={title} className="flex items-start gap-3 p-3.5 rounded-xl bg-card/60 border border-border/50">
@@ -53,67 +80,147 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Right: Login card */}
-        <div className="flex flex-col items-center">
-          <div className="w-full max-w-sm bg-card border border-card-border rounded-2xl p-8 shadow-2xl space-y-6">
-            <div className="text-center space-y-3">
-              <div className="flex justify-center mb-2">
-                <OutlierLogoMark size="lg" />
-              </div>
-              <h2 className="text-2xl font-black tracking-[0.1em] uppercase text-foreground">OUTLIER</h2>
-              <p className="text-sm text-muted-foreground">Aceda ou crie a sua conta de trading profissional</p>
+        {/* Right: Auth card */}
+        <div className="flex flex-col items-center w-full">
+          <div className="w-full max-w-sm bg-card border border-card-border rounded-2xl p-8 shadow-2xl">
+            {/* Logo (mobile only) */}
+            <div className="flex lg:hidden justify-center mb-6">
+              <OutlierLogoMark size="lg" />
             </div>
 
-            <div className="grid grid-cols-3 gap-2 p-3 bg-muted/50 rounded-xl border border-border/40">
-              <div className="text-center">
-                <p className="text-lg font-bold text-profit">+12.4%</p>
-                <p className="text-xs text-muted-foreground">Retorno</p>
-              </div>
-              <div className="text-center border-x border-border">
-                <p className="text-lg font-bold text-foreground">68%</p>
-                <p className="text-xs text-muted-foreground">Win Rate</p>
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-bold text-foreground">91%</p>
-                <p className="text-xs text-muted-foreground">Disciplina</p>
-              </div>
-            </div>
-
-            {/* Login + Register buttons */}
-            <div className="space-y-3">
-              <button
-                onClick={login}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 brand-bg text-white rounded-xl font-bold text-sm hover:opacity-90 transition-all active:scale-[0.98]"
-                style={{ boxShadow: "0 4px 20px hsl(249 100% 60% / 0.4)" }}
-                data-testid="button-login"
-              >
-                <LogIn className="h-4 w-4" />
-                Entrar na Conta
-              </button>
-
-              <button
-                onClick={login}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-transparent border-2 border-primary/50 text-primary rounded-xl font-bold text-sm hover:bg-primary/10 hover:border-primary transition-all active:scale-[0.98]"
-                data-testid="button-register"
-              >
-                <UserPlus className="h-4 w-4" />
-                Criar Conta Gratuita
-              </button>
-
-              <p className="text-center text-xs text-muted-foreground pt-1">
-                Novo utilizador? A conta é criada automaticamente no primeiro acesso.
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-black tracking-[0.08em] uppercase text-foreground">
+                {mode === "login" ? "Entrar" : "Criar Conta"}
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {mode === "login" ? "Aceda à sua conta OUTLIER" : "Crie a sua conta gratuita"}
               </p>
             </div>
 
-            <div className="border-t border-border pt-4 text-center">
-              <p className="text-xs text-muted-foreground">Acesso seguro · Dados privados · Cada utilizador tem os seus dados</p>
+            {/* Tab switcher */}
+            <div className="flex rounded-lg bg-muted/50 border border-border p-1 mb-6">
+              <button
+                type="button"
+                onClick={() => { setMode("login"); setError(null); }}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-semibold transition-all ${mode === "login" ? "brand-bg text-white" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <LogIn className="h-3.5 w-3.5" /> Entrar
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMode("register"); setError(null); }}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-semibold transition-all ${mode === "register" ? "brand-bg text-white" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <UserPlus className="h-3.5 w-3.5" /> Registar
+              </button>
             </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === "register" && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Nome completo</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder="O seu nome"
+                    required
+                    className="w-full bg-muted/50 border border-border rounded-lg px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="email@exemplo.com"
+                  required
+                  autoComplete="email"
+                  className="w-full bg-muted/50 border border-border rounded-lg px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                    autoComplete={mode === "login" ? "current-password" : "new-password"}
+                    className="w-full bg-muted/50 border border-border rounded-lg px-3.5 py-2.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  />
+                  <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {mode === "register" && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Confirmar password</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirm ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      placeholder="Repita a password"
+                      required
+                      autoComplete="new-password"
+                      className="w-full bg-muted/50 border border-border rounded-lg px-3.5 py-2.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    />
+                    <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                      {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <div className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 brand-bg text-white rounded-xl font-bold text-sm hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-60 mt-2"
+                style={{ boxShadow: "0 4px 20px hsl(249 100% 60% / 0.35)" }}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    {mode === "login" ? "A entrar..." : "A criar conta..."}
+                  </span>
+                ) : (
+                  <>
+                    {mode === "login" ? <LogIn className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+                    {mode === "login" ? "Entrar na Conta" : "Criar Conta Gratuita"}
+                  </>
+                )}
+              </button>
+            </form>
+
+            <p className="text-center text-xs text-muted-foreground mt-4">
+              {mode === "login"
+                ? <>Não tem conta? <button type="button" onClick={() => { setMode("register"); setError(null); }} className="text-primary hover:underline font-semibold">Registar agora</button></>
+                : <>Já tem conta? <button type="button" onClick={() => { setMode("login"); setError(null); }} className="text-primary hover:underline font-semibold">Entrar</button></>
+              }
+            </p>
           </div>
 
-          <div className="mt-5 flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-500" /> SSL Seguro</div>
             <div className="flex items-center gap-1.5"><Shield className="h-3 w-3" /> Dados Privados</div>
-            <div className="flex items-center gap-1.5"><TrendingUp className="h-3 w-3" /> Tempo Real</div>
           </div>
         </div>
       </div>
