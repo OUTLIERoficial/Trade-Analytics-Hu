@@ -11,11 +11,13 @@
     "moduleResolution": "bundler",
     "types": ["node", "vite/client"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@assets/*": ["./src/assets/*"]
     }
   },
   "references": [
     { "path": "../../lib/api-client-react" },
-    { "path": "../../lib/replit-auth-web" }
+    { "path": "../../lib/replit-auth-web" },
+    { "path": "../../lib/object-storage-web" }
   ]
 }

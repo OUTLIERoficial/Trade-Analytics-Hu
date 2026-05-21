@@ -63,6 +63,7 @@ export const ENTRY_TRIGGERS = [
   "MSS", "BOS", "LiquiditySweep", "OrderBlock", "FVG",
   "SMTDivergence", "RejectionCandle", "Engulfing",
   "BreakerBlock", "MitigationBlock", "SessionManipulation", "CHOCH",
+  "TBS + Model #1",
 ];
 export const SESSIONS = ["london", "new_york", "asian", "london_open", "ny_open"];
 export const SESSION_LABELS: Record<string, string> = {
@@ -75,6 +76,7 @@ export const SESSION_LABELS: Record<string, string> = {
 export const SETUPS = [
   "LiquiditySweep", "OrderBlock", "FVG", "BOS", "MSS",
   "Breaker", "Mitigation", "CHOCH", "SMT", "IFVG",
+  "KeyLevel + CRT",
 ];
 export const EMOTIONS_BEFORE = ["confiante", "com_medo", "ansioso", "confiante_demais", "cansado", "vinganca", "focado"];
 export const EMOTIONS_AFTER = ["calmo", "frustrado", "disciplinado", "emocional", "feliz", "impulsivo"];

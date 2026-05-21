@@ -179,6 +179,11 @@ export interface Trade {
   tags?: string | null;
   /** @nullable */
   screenshotUrl?: string | null;
+  /**
+   * JSON array of object storage paths for trade screenshots
+   * @nullable
+   */
+  imageUrls?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -235,6 +240,11 @@ export interface CreateTradeBody {
   tags?: string | null;
   /** @nullable */
   screenshotUrl?: string | null;
+  /**
+   * JSON array of object storage paths for trade screenshots
+   * @nullable
+   */
+  imageUrls?: string | null;
 }
 
 export interface UpdateTradeBody {
@@ -292,6 +302,11 @@ export interface UpdateTradeBody {
   tags?: string | null;
   /** @nullable */
   screenshotUrl?: string | null;
+  /**
+   * JSON array of object storage paths for trade screenshots
+   * @nullable
+   */
+  imageUrls?: string | null;
 }
 
 export interface PsychologyLog {

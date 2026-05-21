@@ -216,6 +216,10 @@ export const ListTradesResponseItem = zod.object({
   notes: zod.string().nullish(),
   tags: zod.string().nullish(),
   screenshotUrl: zod.string().nullish(),
+  imageUrls: zod
+    .string()
+    .nullish()
+    .describe("JSON array of object storage paths for trade screenshots"),
   createdAt: zod.string(),
   updatedAt: zod.string(),
 });
@@ -253,6 +257,10 @@ export const CreateTradeBody = zod.object({
   notes: zod.string().nullish(),
   tags: zod.string().nullish(),
   screenshotUrl: zod.string().nullish(),
+  imageUrls: zod
+    .string()
+    .nullish()
+    .describe("JSON array of object storage paths for trade screenshots"),
 });
 
 /**
@@ -311,6 +319,10 @@ export const GetTradeResponse = zod.object({
   notes: zod.string().nullish(),
   tags: zod.string().nullish(),
   screenshotUrl: zod.string().nullish(),
+  imageUrls: zod
+    .string()
+    .nullish()
+    .describe("JSON array of object storage paths for trade screenshots"),
   createdAt: zod.string(),
   updatedAt: zod.string(),
 });
@@ -350,6 +362,10 @@ export const UpdateTradeBody = zod.object({
   notes: zod.string().nullish(),
   tags: zod.string().nullish(),
   screenshotUrl: zod.string().nullish(),
+  imageUrls: zod
+    .string()
+    .nullish()
+    .describe("JSON array of object storage paths for trade screenshots"),
 });
 
 export const UpdateTradeResponse = zod.object({
@@ -401,6 +417,10 @@ export const UpdateTradeResponse = zod.object({
   notes: zod.string().nullish(),
   tags: zod.string().nullish(),
   screenshotUrl: zod.string().nullish(),
+  imageUrls: zod
+    .string()
+    .nullish()
+    .describe("JSON array of object storage paths for trade screenshots"),
   createdAt: zod.string(),
   updatedAt: zod.string(),
 });
@@ -683,6 +703,10 @@ export const GetRecentTradesResponseItem = zod.object({
   notes: zod.string().nullish(),
   tags: zod.string().nullish(),
   screenshotUrl: zod.string().nullish(),
+  imageUrls: zod
+    .string()
+    .nullish()
+    .describe("JSON array of object storage paths for trade screenshots"),
   createdAt: zod.string(),
   updatedAt: zod.string(),
 });

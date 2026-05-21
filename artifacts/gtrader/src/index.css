@@ -49,7 +49,8 @@
 }
 
 /* ============================================================
-   GTRADER PRO — DARK TRADING TERMINAL THEME
+   OUTLIER — DARK TRADING TERMINAL THEME
+   Deep navy / indigo / violet palette (matches logo icon)
    ============================================================ */
 :root {
   --background: 220 20% 97%;
@@ -61,7 +62,7 @@
   --popover: 0 0% 100%;
   --popover-foreground: 222 30% 8%;
   --popover-border: 220 14% 90%;
-  --primary: 221 83% 53%;
+  --primary: 249 100% 65%;
   --primary-foreground: 0 0% 100%;
   --secondary: 220 14% 93%;
   --secondary-foreground: 222 30% 8%;
@@ -72,62 +73,62 @@
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   --input: 220 14% 88%;
-  --ring: 221 83% 53%;
+  --ring: 249 100% 65%;
   --gold: 43 96% 56%;
   --gold-foreground: 43 96% 20%;
-  --chart-1: 221 83% 53%;
+  --chart-1: 249 100% 65%;
   --chart-2: 142 71% 45%;
   --chart-3: 43 96% 56%;
   --chart-4: 270 65% 60%;
   --chart-5: 0 84% 60%;
-  --sidebar: 222 30% 11%;
-  --sidebar-foreground: 210 20% 82%;
-  --sidebar-border: 222 25% 17%;
-  --sidebar-primary: 221 83% 53%;
+  --sidebar: 230 35% 9%;
+  --sidebar-foreground: 220 15% 78%;
+  --sidebar-border: 230 30% 14%;
+  --sidebar-primary: 249 100% 65%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 222 25% 17%;
-  --sidebar-accent-foreground: 210 20% 92%;
+  --sidebar-accent: 230 30% 14%;
+  --sidebar-accent-foreground: 220 20% 92%;
   --app-font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
   --app-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   --radius: 0.5rem;
 }
 
 .dark {
-  --background: 222 26% 7%;
-  --foreground: 210 20% 92%;
-  --border: 222 20% 15%;
-  --card: 222 24% 10%;
-  --card-foreground: 210 20% 92%;
-  --card-border: 222 20% 16%;
-  --popover: 222 24% 10%;
-  --popover-foreground: 210 20% 92%;
-  --popover-border: 222 20% 16%;
-  --primary: 221 83% 60%;
+  --background: 230 35% 6%;
+  --foreground: 220 20% 92%;
+  --border: 230 25% 14%;
+  --card: 230 32% 9%;
+  --card-foreground: 220 20% 92%;
+  --card-border: 230 25% 15%;
+  --popover: 230 32% 9%;
+  --popover-foreground: 220 20% 92%;
+  --popover-border: 230 25% 15%;
+  --primary: 249 100% 68%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 222 22% 15%;
-  --secondary-foreground: 210 20% 92%;
-  --muted: 222 22% 14%;
-  --muted-foreground: 215 12% 52%;
-  --accent: 222 22% 17%;
-  --accent-foreground: 210 20% 92%;
+  --secondary: 230 28% 14%;
+  --secondary-foreground: 220 20% 92%;
+  --muted: 230 28% 13%;
+  --muted-foreground: 220 12% 52%;
+  --accent: 230 28% 16%;
+  --accent-foreground: 220 20% 92%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --input: 222 20% 17%;
-  --ring: 221 83% 60%;
+  --input: 230 25% 16%;
+  --ring: 249 100% 68%;
   --gold: 43 96% 56%;
   --gold-foreground: 43 96% 85%;
-  --chart-1: 221 83% 60%;
+  --chart-1: 249 100% 68%;
   --chart-2: 142 71% 45%;
   --chart-3: 43 96% 56%;
   --chart-4: 270 65% 60%;
   --chart-5: 0 72% 51%;
-  --sidebar: 222 28% 6%;
-  --sidebar-foreground: 210 15% 78%;
-  --sidebar-border: 222 25% 12%;
-  --sidebar-primary: 221 83% 60%;
+  --sidebar: 230 40% 5%;
+  --sidebar-foreground: 220 15% 72%;
+  --sidebar-border: 230 30% 11%;
+  --sidebar-primary: 249 100% 68%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 222 25% 13%;
-  --sidebar-accent-foreground: 210 20% 92%;
+  --sidebar-accent: 230 30% 11%;
+  --sidebar-accent-foreground: 220 20% 92%;
 }
 
 @layer base {
@@ -164,17 +165,18 @@
 }
 
 /* ============================================================
-   GRADIENT BRAND ELEMENTS
+   OUTLIER GRADIENT BRAND ELEMENTS
+   The logo is deep navy → violet/purple, white wordmark
    ============================================================ */
 .brand-gradient {
-  background: linear-gradient(135deg, hsl(221 83% 60%), hsl(270 65% 60%));
+  background: linear-gradient(135deg, hsl(249 100% 68%), hsl(270 80% 65%));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .brand-bg {
-  background: linear-gradient(135deg, hsl(221 83% 53%), hsl(221 83% 45%));
+  background: linear-gradient(135deg, hsl(249 100% 60%), hsl(260 90% 55%));
 }
 
 .gold-gradient {
@@ -185,16 +187,37 @@
 }
 
 /* ============================================================
-   SIDEBAR GLOW ACTIVE STATE
+   OUTLIER LOGO ICON — matches the attached dark navy+violet icon
    ============================================================ */
-.sidebar-active-glow {
-  background: linear-gradient(90deg, hsl(221 83% 60% / 0.2), hsl(221 83% 60% / 0.05));
-  border-left: 3px solid hsl(221 83% 60%);
-  color: hsl(221 83% 70%);
+.logo-icon {
+  background: radial-gradient(ellipse at 35% 20%, hsl(249 100% 55% / 0.9) 0%, hsl(230 60% 12%) 70%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px hsl(249 100% 60% / 0.35), inset 0 1px 0 hsl(249 100% 90% / 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.logo-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 40% 15%, hsl(260 100% 70% / 0.4) 0%, transparent 65%);
+  border-radius: 12px;
 }
 
 /* ============================================================
-   STAT CARD SHIMMER
+   SIDEBAR GLOW ACTIVE STATE
+   ============================================================ */
+.sidebar-active-glow {
+  background: linear-gradient(90deg, hsl(249 100% 65% / 0.18), hsl(249 100% 65% / 0.04));
+  border-left: 3px solid hsl(249 100% 65%);
+  color: hsl(249 100% 78%);
+}
+
+/* ============================================================
+   STAT CARD ACCENTS
    ============================================================ */
 .stat-card-profit {
   border-left: 3px solid hsl(142 71% 42%);
@@ -205,8 +228,8 @@
   background: linear-gradient(135deg, hsl(var(--card)), hsl(0 72% 54% / 0.05));
 }
 .stat-card-primary {
-  border-left: 3px solid hsl(221 83% 60%);
-  background: linear-gradient(135deg, hsl(var(--card)), hsl(221 83% 60% / 0.05));
+  border-left: 3px solid hsl(249 100% 65%);
+  background: linear-gradient(135deg, hsl(var(--card)), hsl(249 100% 65% / 0.05));
 }
 .stat-card-gold {
   border-left: 3px solid hsl(43 96% 56%);
@@ -225,7 +248,7 @@
 }
 
 /* ============================================================
-   ANIMATED TICKER BADGE
+   PULSE BADGES
    ============================================================ */
 @keyframes pulse-green {
   0%, 100% { box-shadow: 0 0 0 0 hsl(142 71% 42% / 0.4); }
@@ -239,24 +262,13 @@
 .loss-badge { animation: pulse-red 2s ease-in-out infinite; }
 
 /* ============================================================
-   LOGO GRADIENT ICON
-   ============================================================ */
-.logo-icon {
-  background: linear-gradient(135deg, hsl(221 83% 60%), hsl(270 65% 60%));
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px hsl(221 83% 60% / 0.4);
-}
-
-/* ============================================================
-   LOGIN PAGE BACKGROUND
+   LOGIN PAGE BACKGROUND — deep navy with violet glow
    ============================================================ */
 .login-bg {
-  background: radial-gradient(ellipse 80% 60% at 50% -10%, hsl(221 83% 53% / 0.15), transparent),
-              radial-gradient(ellipse 60% 50% at 90% 90%, hsl(270 65% 60% / 0.1), transparent),
-              hsl(var(--background));
+  background:
+    radial-gradient(ellipse 70% 55% at 50% -5%, hsl(249 100% 55% / 0.18), transparent),
+    radial-gradient(ellipse 50% 40% at 85% 95%, hsl(270 80% 55% / 0.12), transparent),
+    hsl(var(--background));
 }
 
 /* ============================================================
@@ -272,4 +284,16 @@
   height: 100%;
   border-radius: 9999px;
   transition: width 0.5s ease;
+}
+
+/* ============================================================
+   UPPY OVERRIDES — match dark theme
+   ============================================================ */
+.uppy-Dashboard--modal .uppy-Dashboard-inner {
+  background: hsl(var(--card)) !important;
+  border-color: hsl(var(--card-border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+.uppy-Dashboard-AddFiles {
+  border-color: hsl(var(--border)) !important;
 }

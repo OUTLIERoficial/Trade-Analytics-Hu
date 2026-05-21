@@ -2,7 +2,7 @@ import { useParams, Link, useLocation } from "wouter";
 import { useGetTrade, useDeleteTrade, getListTradesQueryKey, getGetDashboardSummaryQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatCurrency, formatDateTime, pnlColor, resultLabel, resultBadgeClass, directionLabel, SESSION_LABELS, cn } from "@/lib/utils";
-import { ArrowLeft, CheckCircle, XCircle, TrendingUp, TrendingDown, Target, Brain, FileText, Shield, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, TrendingUp, TrendingDown, Target, Brain, FileText, Shield, Trash2, Camera, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -189,12 +189,51 @@ export default function TradeDetail() {
         </SectionCard>
       )}
 
-      {trade.screenshotUrl && (
-        <div className="bg-card border border-card-border rounded-xl p-5">
-          <h2 className="text-sm font-bold mb-3">Screenshot do Gráfico</h2>
-          <img src={trade.screenshotUrl} alt="Trade chart" className="rounded-xl max-h-80 w-full object-contain" />
-        </div>
-      )}
+      {/* Screenshots grid — shows imageUrls array or falls back to screenshotUrl */}
+      {(() => {
+        const images: string[] = (() => {
+          if (trade.imageUrls) {
+            try { return JSON.parse(trade.imageUrls) as string[]; } catch { /* empty */ }
+          }
+          if (trade.screenshotUrl) return [trade.screenshotUrl];
+          return [];
+        })();
+        if (!images.length) return null;
+        return (
+          <div className="bg-card border border-card-border rounded-xl p-5">
+            <h2 className="text-sm font-bold flex items-center gap-2 mb-4">
+              <div className="w-6 h-6 rounded-md brand-bg flex items-center justify-center">
+                <Camera className="h-3.5 w-3.5 text-white" />
+              </div>
+              Screenshots do Gráfico
+              <span className="ml-auto text-xs text-muted-foreground font-normal">{images.length} {images.length === 1 ? "imagem" : "imagens"}</span>
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {images.map((path, i) => (
+                <a
+                  key={i}
+                  href={`/api/storage${path}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative group aspect-video rounded-lg overflow-hidden border border-border bg-muted block"
+                >
+                  <img
+                    src={`/api/storage${path}`}
+                    alt={`Screenshot ${i + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                    <ExternalLink className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="absolute bottom-1 left-1 text-[10px] text-white/70 bg-black/40 px-1.5 py-0.5 rounded font-mono">
+                    {i + 1}
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, TrendingUp, TrendingDown, BarChart3, Brain, FileText, DollarSign } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, BarChart3, Brain, FileText, DollarSign, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { TradeImageUpload } from "@/components/TradeImageUpload";
 
 const NONE = "__none__";
 
@@ -50,6 +51,7 @@ export default function NewTrade() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [form, setForm] = useState<FormState>(initialForm);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   function set(key: keyof FormState, value: string) {
     setForm(f => ({ ...f, [key]: value }));
@@ -95,7 +97,8 @@ export default function NewTrade() {
         disciplineScore: form.disciplineScore ? parseInt(form.disciplineScore, 10) : null,
         notes: form.notes || null,
         tags: form.tags || null,
-        screenshotUrl: null,
+        screenshotUrl: imageUrls.length > 0 ? imageUrls[0] : null,
+        imageUrls: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null,
       },
     }, {
       onSuccess: (trade) => {
@@ -196,7 +199,7 @@ export default function NewTrade() {
               </Select>
             </div>
             <div className="grid gap-1.5">
-              <Label>Setup</Label>
+              <Label>Setup / Contexto</Label>
               <Select value={form.setup || NONE} onValueChange={v => set("setup", v === NONE ? "" : v)}>
                 <SelectTrigger data-testid="select-setup"><SelectValue placeholder="Setup" /></SelectTrigger>
                 <SelectContent><SelectItem value={NONE}>Nenhum</SelectItem>{SETUPS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
@@ -227,6 +230,17 @@ export default function NewTrade() {
             <div className="grid gap-1.5"><Label>Risco %</Label><Input type="number" step="0.1" value={form.riskPercent} onChange={e => set("riskPercent", e.target.value)} placeholder="1.0" data-testid="input-risk-percent" /></div>
             <div className="grid gap-1.5"><Label>Valor em Risco</Label><Input type="number" step="0.01" value={form.riskAmount} onChange={e => set("riskAmount", e.target.value)} placeholder="100" data-testid="input-risk-amount" /></div>
           </div>
+        </div>
+
+        {/* Screenshots */}
+        <div className="bg-card border border-card-border rounded-xl p-5">
+          <SectionHeader icon={Camera} title="Screenshots do Gráfico" />
+          <p className="text-xs text-muted-foreground mb-3">Adicione imagens de antes e depois da operação — análise HTF, ponto de entrada, resultado. Até 8 imagens.</p>
+          <TradeImageUpload
+            value={imageUrls}
+            onChange={setImageUrls}
+            maxImages={8}
+          />
         </div>
 
         {/* Discipline */}

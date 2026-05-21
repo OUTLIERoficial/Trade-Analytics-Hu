@@ -27,11 +27,12 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="logo-icon w-14 h-14">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <polyline points="2,17 7,12 11,15 16,9 22,14" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              <polyline points="16,9 22,9 22,14" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <div className="logo-icon flex-shrink-0" style={{ width: 64, height: 64 }}>
+            <img
+              src="/outlier-logo.png"
+              alt="OUTLIER"
+              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 14 }}
+            />
           </div>
           <div className="flex gap-1.5">
             <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
