@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import { useGetTrades } from "@workspace/api-client-react";
+import { useListTrades } from "@workspace/api-client-react";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -35,7 +35,7 @@ export default function JournalScreen() {
   const router = useRouter();
   const [filter, setFilter] = useState<ResultFilter>("all");
 
-  const { data: trades, isLoading } = useGetTrades({
+  const { data: trades, isLoading } = useListTrades({
     result: filter === "all" ? undefined : filter,
     limit: 50,
   });

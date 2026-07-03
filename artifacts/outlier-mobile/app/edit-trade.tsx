@@ -108,7 +108,9 @@ export default function EditTradeScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tradeId = Number(id);
 
-  const { data: trade, isLoading: loadingTrade } = useGetTrade(tradeId, { query: { enabled: !!tradeId } });
+  const { data: trade, isLoading: loadingTrade } = useGetTrade(tradeId, {
+    query: { enabled: !!tradeId, queryKey: getGetTradeQueryKey(tradeId) },
+  });
   const { data: accounts } = useListAccounts();
   const updateTrade = useUpdateTrade();
   const deleteTrade = useDeleteTrade();
