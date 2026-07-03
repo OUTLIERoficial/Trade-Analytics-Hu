@@ -1,9 +1,63 @@
-import { useGetDashboardSummary, useGetRecentTrades } from "@workspace/api-client-react";
+import { useGetDashboardSummary, useGetRecentTrades, useGetEquityCurve } from "@workspace/api-client-react";
 import { formatCurrency, formatPercent, formatDateTime, pnlColor, cn, directionLabel } from "@/lib/utils";
 import StatCard from "@/components/StatCard";
-import { BarChart3, Wallet, Activity, TrendingUp, TrendingDown, Zap, Star, Calendar, StickyNote } from "lucide-react";
+import { BarChart3, Wallet, Activity, TrendingUp, TrendingDown, Zap, Star, Calendar, StickyNote, LineChart as LineChartIcon } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+
+function EquityCurveCard() {
+  const { data: equity, isLoading } = useGetEquityCurve();
+  const first = equity?.[0]?.balance ?? 0;
+  const last = equity?.[equity.length - 1]?.balance ?? 0;
+  const growth = first > 0 ? ((last - first) / first) * 100 : 0;
+  const positive = growth >= 0;
+
+  return (
+    <div className="bg-card border border-card-border rounded-xl p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md brand-bg flex items-center justify-center">
+            <LineChartIcon className="h-3.5 w-3.5 text-white" />
+          </div>
+          Curva de Capital
+        </h2>
+        {equity && equity.length > 1 && (
+          <span className={cn("text-xs font-bold px-2 py-1 rounded-full", positive ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss")} data-testid="text-equity-growth">
+            {positive ? "+" : ""}{growth.toFixed(1)}% crescimento
+          </span>
+        )}
+      </div>
+      {isLoading ? (
+        <div className="h-[220px] bg-muted/40 rounded-lg animate-pulse" />
+      ) : !equity || equity.length < 2 ? (
+        <div className="h-[220px] flex items-center justify-center">
+          <p className="text-sm text-muted-foreground">Sem dados suficientes. Registe operações para ver a evolução do capital.</p>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={220}>
+          <AreaChart data={equity} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+            <defs>
+              <linearGradient id="dashEquityGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="hsl(221 83% 60%)" stopOpacity={0.35} />
+                <stop offset="95%" stopColor="hsl(221 83% 60%)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <XAxis dataKey="date" tickFormatter={v => new Date(v).toLocaleDateString("pt-PT", { month: "short", day: "numeric" })} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+            <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickFormatter={v => `$${v.toLocaleString()}`} width={70} />
+            <Tooltip
+              labelFormatter={v => new Date(v).toLocaleDateString("pt-PT", { day: "numeric", month: "short", year: "numeric" })}
+              formatter={(v: number) => [formatCurrency(v), "Saldo"]}
+              contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12 }}
+            />
+            <Area type="monotone" dataKey="balance" stroke="hsl(221 83% 60%)" fill="url(#dashEquityGrad)" strokeWidth={2.5} dot={false} />
+          </AreaChart>
+        </ResponsiveContainer>
+      )}
+    </div>
+  );
+}
 
 function QuickNotes() {
   const today = new Date().toISOString().slice(0, 10);
@@ -133,6 +187,8 @@ export default function Dashboard() {
         <StatCard label="Melhor Setup" value={s?.bestSetup ?? "—"} sub="Por lucro" variant="gold" data-testid="stat-best-setup" />
         <StatCard label="Melhor Sessão" value={s?.bestSession?.replace(/_/g, " ") ?? "—"} sub="Por lucro" data-testid="stat-best-session" />
       </div>
+
+      <EquityCurveCard />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Account breakdown */}

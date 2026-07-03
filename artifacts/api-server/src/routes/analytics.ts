@@ -246,14 +246,36 @@ router.get("/analytics/setups", async (req, res): Promise<void> => {
 router.get("/analytics/equity-curve", async (req, res): Promise<void> => {
   const query = GetEquityCurveQueryParams.safeParse(req.query);
   if (!query.success) { res.status(400).json({ error: query.error.message }); return; }
-  const [account] = await db.select().from(accountsTable).where(eq(accountsTable.id, query.data.accountId));
-  if (!account) { res.status(404).json({ error: "Account not found" }); return; }
-  const trades = await db.select().from(tradesTable)
-    .where(eq(tradesTable.accountId, query.data.accountId))
-    .orderBy(tradesTable.tradeDate);
 
-  let balance = account.initialBalance;
-  const points = [{ date: account.createdAt.toISOString(), balance, pnl: 0, tradeId: null }];
+  if (query.data.accountId != null) {
+    const [account] = await db.select().from(accountsTable).where(eq(accountsTable.id, query.data.accountId));
+    if (!account) { res.status(404).json({ error: "Account not found" }); return; }
+    const trades = await db.select().from(tradesTable)
+      .where(eq(tradesTable.accountId, query.data.accountId))
+      .orderBy(tradesTable.tradeDate);
+
+    let balance = account.initialBalance;
+    const points: { date: string; balance: number; pnl: number; tradeId: number | null }[] =
+      [{ date: account.createdAt.toISOString(), balance, pnl: 0, tradeId: null }];
+    for (const t of trades) {
+      balance += t.pnl ?? 0;
+      points.push({ date: new Date(t.tradeDate).toISOString(), balance, pnl: t.pnl ?? 0, tradeId: t.id });
+    }
+    res.json(points);
+    return;
+  }
+
+  const accounts = await db.select().from(accountsTable);
+  if (accounts.length === 0) { res.json([]); return; }
+  const trades = await db.select().from(tradesTable).orderBy(tradesTable.tradeDate);
+
+  let balance = accounts.reduce((sum, a) => sum + a.initialBalance, 0);
+  const earliestCreatedAt = accounts.reduce(
+    (min, a) => (a.createdAt < min ? a.createdAt : min),
+    accounts[0].createdAt,
+  );
+  const points: { date: string; balance: number; pnl: number; tradeId: number | null }[] =
+    [{ date: earliestCreatedAt.toISOString(), balance, pnl: 0, tradeId: null }];
   for (const t of trades) {
     balance += t.pnl ?? 0;
     points.push({ date: new Date(t.tradeDate).toISOString(), balance, pnl: t.pnl ?? 0, tradeId: t.id });

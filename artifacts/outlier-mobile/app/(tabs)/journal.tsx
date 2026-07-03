@@ -113,7 +113,10 @@ export default function JournalScreen() {
             const pnlPositive = t.pnl != null && t.pnl >= 0;
 
             return (
-              <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Pressable
+                onPress={() => router.push(`/edit-trade?id=${t.id}`)}
+                style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+              >
                 <View style={styles.cardTop}>
                   <View style={styles.cardLeft}>
                     <View style={[styles.resultBadge, { backgroundColor: resultBg }]}>
@@ -163,7 +166,7 @@ export default function JournalScreen() {
                     </View>
                   )}
                 </View>
-              </View>
+              </Pressable>
             );
           }}
         />

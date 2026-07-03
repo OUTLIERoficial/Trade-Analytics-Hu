@@ -33,6 +33,7 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="new-trade" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="edit-trade" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="accounts" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );

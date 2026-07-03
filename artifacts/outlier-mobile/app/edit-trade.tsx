@@ -1,15 +1,19 @@
 import { Feather } from "@expo/vector-icons";
 import {
   getGetDashboardSummaryQueryKey,
+  getGetTradeQueryKey,
   getListTradesQueryKey,
-  useCreateTrade,
+  useDeleteTrade,
+  useGetTrade,
   useListAccounts,
+  useUpdateTrade,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -96,13 +100,18 @@ function ChipRow({
   );
 }
 
-export default function NewTradeScreen() {
+export default function EditTradeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const tradeId = Number(id);
+
+  const { data: trade, isLoading: loadingTrade } = useGetTrade(tradeId, { query: { enabled: !!tradeId } });
   const { data: accounts } = useListAccounts();
-  const createTrade = useCreateTrade();
+  const updateTrade = useUpdateTrade();
+  const deleteTrade = useDeleteTrade();
 
   const [accountId, setAccountId] = useState<number | null>(null);
   const [asset, setAsset] = useState("");
@@ -120,6 +129,31 @@ export default function NewTradeScreen() {
   const [notes, setNotes] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    if (!trade || hydrated) return;
+    setAccountId(trade.accountId);
+    setAsset(trade.asset);
+    setDirection(trade.direction === "sell" ? "sell" : "buy");
+    setTimeframe(trade.timeframe ?? "");
+    setEntryTrigger(trade.entryTrigger ?? "");
+    setSetup(trade.setup ?? "");
+    setSession(trade.session ?? "");
+    setEntryPrice(trade.entryPrice != null ? String(trade.entryPrice) : "");
+    setStopLoss(trade.stopLoss != null ? String(trade.stopLoss) : "");
+    setTakeProfit(trade.takeProfit != null ? String(trade.takeProfit) : "");
+    setRiskReward(trade.riskReward != null ? String(trade.riskReward) : "");
+    setResult(trade.result === "loss" || trade.result === "breakeven" ? trade.result : "win");
+    setPnl(trade.pnl != null ? String(trade.pnl) : "");
+    setNotes(trade.notes ?? "");
+    try {
+      setImageUrls(trade.imageUrls ? JSON.parse(trade.imageUrls) : []);
+    } catch {
+      setImageUrls([]);
+    }
+    setHydrated(true);
+  }, [trade, hydrated]);
 
   const topPadding = insets.top + (Platform.OS === "web" ? 20 : 0);
 
@@ -129,11 +163,10 @@ export default function NewTradeScreen() {
       return;
     }
     setError(null);
-    createTrade.mutate(
+    updateTrade.mutate(
       {
+        id: tradeId,
         data: {
-          accountId,
-          tradeDate: new Date().toISOString(),
           asset: asset.trim().toUpperCase(),
           direction,
           setup: setup || null,
@@ -155,10 +188,42 @@ export default function NewTradeScreen() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListTradesQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetTradeQueryKey(tradeId) });
           router.back();
         },
-        onError: () => setError("Erro ao registar a operação. Tente novamente."),
+        onError: () => setError("Erro ao atualizar a operação. Tente novamente."),
       }
+    );
+  }
+
+  function handleDelete() {
+    Alert.alert("Eliminar Operação", "Tem a certeza que deseja eliminar esta operação?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Eliminar",
+        style: "destructive",
+        onPress: () => {
+          deleteTrade.mutate(
+            { id: tradeId },
+            {
+              onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: getListTradesQueryKey() });
+                queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+                router.back();
+              },
+              onError: () => setError("Erro ao eliminar a operação."),
+            }
+          );
+        },
+      },
+    ]);
+  }
+
+  if (loadingTrade || !hydrated) {
+    return (
+      <View style={[styles.loadingWrap, { backgroundColor: colors.background, paddingTop: topPadding }]}>
+        <ActivityIndicator color={colors.primary} />
+      </View>
     );
   }
 
@@ -171,47 +236,37 @@ export default function NewTradeScreen() {
         <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
           <Feather name="x" size={22} color={colors.foreground} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Nova Operação</Text>
-        <View style={{ width: 30 }} />
+        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Editar Operação</Text>
+        <Pressable onPress={handleDelete} style={styles.backBtn} hitSlop={10}>
+          <Feather name="trash-2" size={20} color={colors.loss} />
+        </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
         <Section title="Conta">
-          {!accounts?.length ? (
-            <Pressable
-              onPress={() => router.push("/accounts")}
-              style={[styles.emptyAccountBox, { borderColor: colors.border, backgroundColor: colors.card }]}
-            >
-              <Feather name="alert-circle" size={16} color={colors.mutedForeground} />
-              <Text style={{ fontFamily: "Inter_500Medium", fontSize: 13, color: colors.mutedForeground }}>
-                Nenhuma conta. Toque para criar uma.
-              </Text>
-            </Pressable>
-          ) : (
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-              {accounts.map(a => {
-                const active = accountId === a.id;
-                return (
-                  <Pressable
-                    key={a.id}
-                    onPress={() => setAccountId(a.id)}
-                    style={{
-                      paddingHorizontal: 13,
-                      paddingVertical: 9,
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      backgroundColor: active ? colors.primary : colors.card,
-                      borderColor: active ? colors.primary : colors.border,
-                    }}
-                  >
-                    <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 13, color: active ? "#fff" : colors.foreground }}>
-                      {a.name}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          )}
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {accounts?.map(a => {
+              const active = accountId === a.id;
+              return (
+                <Pressable
+                  key={a.id}
+                  onPress={() => setAccountId(a.id)}
+                  style={{
+                    paddingHorizontal: 13,
+                    paddingVertical: 9,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    backgroundColor: active ? colors.primary : colors.card,
+                    borderColor: active ? colors.primary : colors.border,
+                  }}
+                >
+                  <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 13, color: active ? "#fff" : colors.foreground }}>
+                    {a.name}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </Section>
 
         <Section title="Ativo & Direção">
@@ -352,11 +407,11 @@ export default function NewTradeScreen() {
         )}
 
         <Pressable
-          style={[styles.submitBtn, { backgroundColor: colors.primary }, createTrade.isPending && { opacity: 0.6 }]}
+          style={[styles.submitBtn, { backgroundColor: colors.primary }, updateTrade.isPending && { opacity: 0.6 }]}
           onPress={handleSubmit}
-          disabled={createTrade.isPending}
+          disabled={updateTrade.isPending}
         >
-          {createTrade.isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Guardar Operação</Text>}
+          {updateTrade.isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Guardar Alterações</Text>}
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -364,6 +419,7 @@ export default function NewTradeScreen() {
 }
 
 const styles = StyleSheet.create({
+  loadingWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -385,14 +441,6 @@ const styles = StyleSheet.create({
     height: 48,
     fontFamily: "Inter_400Regular",
     fontSize: 15,
-  },
-  emptyAccountBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
   },
   errorBox: {
     flexDirection: "row",

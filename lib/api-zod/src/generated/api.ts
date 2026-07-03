@@ -633,10 +633,10 @@ export const GetSetupAnalyticsResponse = zod.array(
 );
 
 /**
- * @summary Get equity curve data points for charting
+ * @summary Get equity curve data points for charting. Omit accountId to aggregate across all accounts.
  */
 export const GetEquityCurveQueryParams = zod.object({
-  accountId: zod.coerce.number(),
+  accountId: zod.coerce.number().nullish(),
 });
 
 export const GetEquityCurveResponseItem = zod.object({

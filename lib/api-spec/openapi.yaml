@@ -449,13 +449,12 @@ paths:
     get:
       operationId: getEquityCurve
       tags: [analytics]
-      summary: Get equity curve data points for charting
+      summary: Get equity curve data points for charting. Omit accountId to aggregate across all accounts.
       parameters:
         - name: accountId
           in: query
-          required: true
           schema:
-            type: integer
+            type: ["integer", "null"]
       responses:
         "200":
           description: Equity curve data points

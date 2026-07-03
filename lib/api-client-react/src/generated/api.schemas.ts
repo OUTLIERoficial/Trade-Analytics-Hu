@@ -555,7 +555,10 @@ export type GetSetupAnalyticsParams = {
 };
 
 export type GetEquityCurveParams = {
-  accountId: number;
+  /**
+   * @nullable
+   */
+  accountId?: number | null;
 };
 
 export type GetRecentTradesParams = {

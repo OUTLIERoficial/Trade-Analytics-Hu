@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import EquityCurveChart from "@/components/EquityCurveChart";
 import { useAuth } from "@/context/AuthContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -111,6 +112,8 @@ export default function DashboardScreen() {
           <Text style={[styles.quickActionText, { color: colors.foreground }]}>Contas</Text>
         </Pressable>
       </View>
+
+      <EquityCurveChart />
 
       {/* Hero PnL card */}
       <View style={[styles.heroCard, { backgroundColor: pnlPositive ? colors.profitBg : colors.lossBg, borderColor: pnlPositive ? colors.profit : colors.loss }]}>

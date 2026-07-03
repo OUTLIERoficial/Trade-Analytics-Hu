@@ -1900,9 +1900,9 @@ export function useGetSetupAnalytics<
 }
 
 /**
- * @summary Get equity curve data points for charting
+ * @summary Get equity curve data points for charting. Omit accountId to aggregate across all accounts.
  */
-export const getGetEquityCurveUrl = (params: GetEquityCurveParams) => {
+export const getGetEquityCurveUrl = (params?: GetEquityCurveParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -1919,7 +1919,7 @@ export const getGetEquityCurveUrl = (params: GetEquityCurveParams) => {
 };
 
 export const getEquityCurve = async (
-  params: GetEquityCurveParams,
+  params?: GetEquityCurveParams,
   options?: RequestInit,
 ): Promise<EquityPoint[]> => {
   return customFetch<EquityPoint[]>(getGetEquityCurveUrl(params), {
@@ -1936,7 +1936,7 @@ export const getGetEquityCurveQueryOptions = <
   TData = Awaited<ReturnType<typeof getEquityCurve>>,
   TError = ErrorType<unknown>,
 >(
-  params: GetEquityCurveParams,
+  params?: GetEquityCurveParams,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getEquityCurve>>,
@@ -1967,14 +1967,14 @@ export type GetEquityCurveQueryResult = NonNullable<
 export type GetEquityCurveQueryError = ErrorType<unknown>;
 
 /**
- * @summary Get equity curve data points for charting
+ * @summary Get equity curve data points for charting. Omit accountId to aggregate across all accounts.
  */
 
 export function useGetEquityCurve<
   TData = Awaited<ReturnType<typeof getEquityCurve>>,
   TError = ErrorType<unknown>,
 >(
-  params: GetEquityCurveParams,
+  params?: GetEquityCurveParams,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getEquityCurve>>,

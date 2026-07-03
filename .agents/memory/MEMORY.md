@@ -1,0 +1,2 @@
+- [OUTLIER mobile trade image uploads](outlier-storage-upload-pattern.md) — object storage upload flow shared by web and mobile (request-url → PUT → view path).
+- [OUTLIER pre-existing typecheck errors](outlier-pretexisting-typecheck-errors.md) — codegen/tsc failures unrelated to AuthUser export and auth.ts User type; don't waste time chasing them.
