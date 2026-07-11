@@ -14,7 +14,7 @@ import {
   type SessionData,
 } from "../lib/auth";
 import { sendPasswordResetEmail } from "../lib/email";
-import { isGoogleOAuthConfigured, getGoogleAuthUrl, exchangeGoogleCode } from "../lib/googleOAuth";
+import { isGoogleOAuthConfigured, getGoogleAuthUrl, exchangeGoogleCode, getRedirectUri } from "../lib/googleOAuth";
 
 const router: IRouter = Router();
 
@@ -262,6 +262,11 @@ router.put("/auth/password", async (req: Request, res: Response) => {
   res.json({ success: true });
 });
 
+// Debug: show the exact redirect URI being used
+router.get("/auth/google/info", (_req: Request, res: Response) => {
+  res.json({ redirectUri: getRedirectUri() });
+});
+
 // Google OAuth — redirect to Google
 router.get("/auth/google", (req: Request, res: Response) => {
   if (!isGoogleOAuthConfigured()) {
@@ -270,7 +275,10 @@ router.get("/auth/google", (req: Request, res: Response) => {
   }
   const isMobile = req.query["mobile"] === "1";
   const state = isMobile ? "mobile" : "web";
-  res.redirect(getGoogleAuthUrl(state));
+  const authUrl = getGoogleAuthUrl(state);
+  const redirectUri = new URL(authUrl).searchParams.get("redirect_uri");
+  console.log("[Google OAuth] Redirect URI:", redirectUri);
+  res.redirect(authUrl);
 });
 
 // Google OAuth — callback

@@ -1,7 +1,7 @@
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
-function getRedirectUri(): string {
+export function getRedirectUri(): string {
   const base = process.env.APP_URL || `https://${process.env.REPLIT_DEV_DOMAIN}`;
   return `${base}/api/auth/google/callback`;
 }
