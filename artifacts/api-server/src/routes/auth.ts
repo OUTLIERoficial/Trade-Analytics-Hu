@@ -14,6 +14,7 @@ import {
   type SessionData,
 } from "../lib/auth";
 import { sendPasswordResetEmail } from "../lib/email";
+import { isGoogleOAuthConfigured, getGoogleAuthUrl, exchangeGoogleCode } from "../lib/googleOAuth";
 
 const router: IRouter = Router();
 
