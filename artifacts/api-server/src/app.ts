@@ -22,6 +22,14 @@ app.use(
   }),
 );
 
+// Healthcheck do Railway
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "API Server is running",
+  });
+});
+
 app.use(cors({ credentials: true, origin: true }));
 app.use(cookieParser());
 app.use(express.json());
