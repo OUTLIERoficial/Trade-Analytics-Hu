@@ -1,7 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setAuthTokenGetter, setBaseUrl } from "@workspace/api-client-react";
+import * as WebBrowser from "expo-web-browser";
 import { useRouter } from "expo-router";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+
+WebBrowser.maybeCompleteAuthSession();
 
 const SID_KEY = "outlier_sid";
 
@@ -17,6 +20,7 @@ interface AuthState {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<string | null>;
+  loginWithGoogle: () => Promise<string | null>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -25,6 +29,7 @@ const AuthContext = createContext<AuthState>({
   user: null,
   loading: true,
   login: async () => null,
+  loginWithGoogle: async () => null,
   logout: async () => {},
   refreshUser: async () => {},
 });
@@ -84,6 +89,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return null;
   }, []);
 
+  const loginWithGoogle = useCallback(async (): Promise<string | null> => {
+    const base = process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : "";
+    const authUrl = `${base}/api/auth/google?mobile=1`;
+    const result = await WebBrowser.openAuthSessionAsync(authUrl, `${base}/login`);
+    if (result.type !== "success") return "Login com Google cancelado.";
+    const url = result.url;
+    const params = new URL(url).searchParams;
+    const err = params.get("error");
+    if (err) return err === "google_cancelled" ? "Login com Google cancelado." : "Erro ao autenticar com Google.";
+    const sid = params.get("sid");
+    if (!sid) return "Erro ao obter sessão do Google.";
+    await AsyncStorage.setItem(SID_KEY, sid);
+    await refreshUser();
+    return null;
+  }, [refreshUser]);
+
   const logout = useCallback(async () => {
     const sid = await AsyncStorage.getItem(SID_KEY);
     const base = process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : "";
@@ -99,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

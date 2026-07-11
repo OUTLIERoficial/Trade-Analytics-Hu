@@ -262,4 +262,81 @@ router.put("/auth/password", async (req: Request, res: Response) => {
   res.json({ success: true });
 });
 
+// Google OAuth — redirect to Google
+router.get("/auth/google", (req: Request, res: Response) => {
+  if (!isGoogleOAuthConfigured()) {
+    res.status(503).json({ error: "Google OAuth não configurado." });
+    return;
+  }
+  const isMobile = req.query["mobile"] === "1";
+  const state = isMobile ? "mobile" : "web";
+  res.redirect(getGoogleAuthUrl(state));
+});
+
+// Google OAuth — callback
+router.get("/auth/google/callback", async (req: Request, res: Response) => {
+  const { code, state, error: oauthError } = req.query as Record<string, string>;
+  const isMobile = state === "mobile";
+  const appUrl = process.env.APP_URL || `https://${process.env.REPLIT_DEV_DOMAIN}`;
+
+  if (oauthError || !code) {
+    const dest = isMobile ? `${appUrl}/login?error=google_cancelled` : `${appUrl}/?error=google_cancelled`;
+    res.redirect(dest);
+    return;
+  }
+
+  try {
+    const profile = await exchangeGoogleCode(code);
+
+    // Find existing user by googleId or email
+    let [user] = await db.select().from(usersTable).where(eq(usersTable.googleId, profile.id));
+
+    if (!user && profile.email) {
+      const [byEmail] = await db.select().from(usersTable).where(eq(usersTable.email, profile.email.toLowerCase()));
+      if (byEmail) {
+        // Link Google to existing email account
+        await db.update(usersTable).set({ googleId: profile.id }).where(eq(usersTable.id, byEmail.id));
+        user = { ...byEmail, googleId: profile.id };
+      }
+    }
+
+    if (!user) {
+      // Create new user
+      const nameParts = (profile.name || "").trim().split(" ");
+      const [inserted] = await db.insert(usersTable).values({
+        email: profile.email?.toLowerCase() ?? null,
+        googleId: profile.id,
+        firstName: profile.given_name || nameParts[0] || "Utilizador",
+        lastName: profile.family_name || nameParts.slice(1).join(" ") || null,
+        profileImageUrl: profile.picture || null,
+      }).returning();
+      user = inserted;
+    }
+
+    const sessionData: SessionData = {
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
+      },
+    };
+
+    const sid = await createSession(sessionData);
+
+    if (isMobile) {
+      // Mobile: redirect with token in URL for the app to pick up
+      res.redirect(`${appUrl}/login?sid=${sid}`);
+    } else {
+      setSessionCookie(res, sid);
+      res.redirect(appUrl);
+    }
+  } catch (err) {
+    console.error("Google OAuth callback error:", err);
+    const dest = isMobile ? `${appUrl}/login?error=google_failed` : `${appUrl}/?error=google_failed`;
+    res.redirect(dest);
+  }
+});
+
 export default router;
