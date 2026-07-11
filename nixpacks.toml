@@ -9,7 +9,6 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "PATH=\"$(npm prefix -g)/bin:$PATH\" pnpm --filter @workspace/db run build",
   "PATH=\"$(npm prefix -g)/bin:$PATH\" pnpm --filter @workspace/api-server run build"
 ]
 
