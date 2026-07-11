@@ -1,6 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, usersTable, passwordResetTokensTable } from "@workspace/db";
+import { eq, and, gt, isNull } from "drizzle-orm";
+import crypto from "crypto";
 import {
   clearSession,
   createSession,
@@ -12,6 +13,7 @@ import {
   SESSION_TTL,
   type SessionData,
 } from "../lib/auth";
+import { sendPasswordResetEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -151,6 +153,82 @@ router.put("/auth/profile", async (req: Request, res: Response) => {
   const sid = getSessionId(req);
   if (sid) await updateSession(sid, { user: updatedUser });
   res.json({ user: updatedUser });
+});
+
+// Forgot password — generate token and send email
+router.post("/auth/forgot-password", async (req: Request, res: Response) => {
+  const { email } = req.body ?? {};
+  if (!email || typeof email !== "string") {
+    res.status(400).json({ error: "Email é obrigatório." });
+    return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email.toLowerCase()));
+
+  // Always respond with success to avoid email enumeration
+  if (!user) {
+    res.json({ ok: true });
+    return;
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  await db.insert(passwordResetTokensTable).values({
+    userId: user.id,
+    token,
+    expiresAt,
+  });
+
+  const appUrl = process.env.APP_URL || `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  const resetUrl = `${appUrl}/redefinir-password?token=${token}`;
+
+  try {
+    await sendPasswordResetEmail(user.email!, resetUrl);
+  } catch (err) {
+    console.error("Failed to send reset email:", err);
+  }
+
+  res.json({ ok: true });
+});
+
+// Reset password — validate token and update password
+router.post("/auth/reset-password", async (req: Request, res: Response) => {
+  const { token, newPassword } = req.body ?? {};
+
+  if (!token || typeof token !== "string") {
+    res.status(400).json({ error: "Token inválido." });
+    return;
+  }
+  if (!newPassword || typeof newPassword !== "string" || newPassword.length < 6) {
+    res.status(400).json({ error: "A nova password deve ter pelo menos 6 caracteres." });
+    return;
+  }
+
+  const [record] = await db
+    .select()
+    .from(passwordResetTokensTable)
+    .where(
+      and(
+        eq(passwordResetTokensTable.token, token),
+        isNull(passwordResetTokensTable.usedAt),
+        gt(passwordResetTokensTable.expiresAt, new Date()),
+      ),
+    );
+
+  if (!record) {
+    res.status(400).json({ error: "Este link de recuperação é inválido ou já expirou." });
+    return;
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+
+  await db.transaction(async (tx) => {
+    await tx.update(usersTable).set({ passwordHash }).where(eq(usersTable.id, record.userId));
+    await tx.update(passwordResetTokensTable).set({ usedAt: new Date() }).where(eq(passwordResetTokensTable.id, record.id));
+  });
+
+  res.json({ ok: true });
 });
 
 // Change password

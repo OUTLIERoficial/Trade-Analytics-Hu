@@ -16,6 +16,8 @@ import Psychology from "@/pages/Psychology";
 import Risk from "@/pages/Risk";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/not-found";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import { OutlierLogoMark } from "@/components/OutlierLogo";
 
 const queryClient = new QueryClient({
@@ -70,9 +72,15 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <AuthGate>
-              <Router />
-            </AuthGate>
+            <Switch>
+              <Route path="/esqueceu-password" component={ForgotPassword} />
+              <Route path="/redefinir-password" component={ResetPassword} />
+              <Route>
+                <AuthGate>
+                  <Router />
+                </AuthGate>
+              </Route>
+            </Switch>
           </WouterRouter>
           <Toaster />
         </TooltipProvider>

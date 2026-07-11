@@ -243,6 +243,14 @@ export default function Login() {
                     </div>
                   )}
 
+                  {mode === "login" && (
+                    <div className="text-right -mt-1">
+                      <a href="esqueceu-password" className="text-xs text-primary hover:underline font-medium">
+                        Esqueceu a password?
+                      </a>
+                    </div>
+                  )}
+
                   <button
                     type="submit"
                     disabled={loading}
