@@ -60,9 +60,17 @@ export default function DashboardScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
+  const [refreshing, setRefreshing] = useState(false);
   const { data: summary, isLoading } = useGetDashboardSummary();
   const { data: trades } = useGetRecentTrades({ limit: 5 });
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await queryClient.invalidateQueries();
+    setRefreshing(false);
+  }, [queryClient]);
 
   const s = summary;
   const pnlPositive = !s || s.totalPnl >= 0;
@@ -81,6 +89,14 @@ export default function DashboardScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={{ paddingTop: topPaddingTotal, paddingBottom: bottomPaddingTotal, paddingHorizontal: 16 }}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+        />
+      }
     >
       {/* Header */}
       <View style={styles.header}>
