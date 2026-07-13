@@ -30,7 +30,28 @@ app.get("/", (_req, res) => {
   });
 });
 
-app.use(cors({ credentials: true, origin: true }));
+const allowedOrigins = [
+  process.env.APP_URL,
+  "https://trade-analytics-hu-gtrader-git-main-outlier06.vercel.app",
+  /\.vercel\.app$/,
+  /\.up\.railway\.app$/,
+  // desenvolvimento local
+  /^http:\/\/localhost(:\d+)?$/,
+  /^https?:\/\/.*\.replit\.dev$/,
+].filter(Boolean) as (string | RegExp)[];
+
+app.use(
+  cors({
+    credentials: true,
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true);
+      const allowed = allowedOrigins.some((o) =>
+        o instanceof RegExp ? o.test(origin) : o === origin,
+      );
+      cb(allowed ? null : new Error("CORS not allowed"), allowed);
+    },
+  }),
+);
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
